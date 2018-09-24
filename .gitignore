@@ -1,0 +1,10 @@
+# Ignore editor backup files
+*.py~
+*.html~
+
+# Ignore python caches
+__pycache__
+
+# Ignore actual data
+*.json
+

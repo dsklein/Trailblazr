@@ -1,0 +1,47 @@
+{% extends "layout.html" %}
+
+
+{% block menu %}
+<!-- <p>The table has {{ length }} rows.</p> -->
+<form method="GET">
+  <!-- start dropdown menu -->
+  <select name="trail" onchange="this.form.submit()">
+	<option value="default" selected disabled hidden>Select a trail...</option>
+	{% for thistrail in traillist.keys() %}
+	<option value="{{ traillist[thistrail]['id'] }}">{{ traillist[thistrail]['name'] }}</option>
+	{% endfor %}
+  </select>
+  <!-- end dropdown menu -->
+</form>
+<!-- {{ dataframe|safe }} -->
+{% endblock %}
+
+
+{% block analysis %}
+{% if selected %}
+<h3>Currently selected trail is: {{ traillist[selected]['name'] }}.</h3>
+<p>Analysis:</p>
+<!-- <p>The ID of this trail is: {{ traillist[selected]['id'] }}.</p> -->
+<p>This trail falls into category {{ traillist[selected]['label'] }}, with the following attributes:<br>
+  Slope: {{ traillist[selected]['slope'] }}<br>
+  Sinuosity (a.k.a. 'twisty-ness'): {{ traillist[selected]['sinuosity'] }}<br>
+  The ski area rates this trail as {{ traillist[selected]['rating'] }}.
+</p>
+{% endif %}
+{% endblock %}
+
+
+{% block similar %}
+{% if selected %}
+<h3>Trails most similar to {{ traillist[selected]['name'] }}:</h3>
+{% if traillist[selected]['neighbors']|length == 0 %}
+<p>Hmm... actually, this trail is the only one in its category!</p>
+{% else %}
+<ul>
+  {% for neighbor in traillist[selected]['neighbors'] %}
+  <li>{{ traillist[neighbor[0]|string]['name'] }}</li>
+  {% endfor %}
+</ul>
+{% endif %}
+{% endif %}
+{% endblock %}
