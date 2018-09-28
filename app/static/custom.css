@@ -1,5 +1,54 @@
-/* Enables horizontal scrolling in any element that has the "container" CSS class. */
+/* CSS for styling my web app */
+html {
+	background-color: lightblue;
+}
+
 .container {
+	background-color: white;
+	margin: auto;
+	max-width: 600px;
+	padding: 25px;
     overflow-x: auto;
     overflow-y: auto;
+}
+
+h1 {
+	font-size: 3em;
+	text-align: center;
+}
+
+h2 {
+	text-align: center;
+}
+
+select {
+	border: none;
+	border-radius: 4px;
+	font-size: 1em;
+	margin: 0px 8px 8px 8px;
+}
+
+select:focus {
+	border-color: #4dac71;
+	box-shadow: 0 0 0 1px #4dac71;
+}
+
+td.easy {
+	background-color: green;
+	color: white;
+}
+
+td.intermediate {
+	background-color: blue;
+	color: white;
+}
+
+td.advanced {
+	background-color: black;
+	color: white;
+}
+
+td.expert {
+	background-color: gray;
+	color: white;
 }

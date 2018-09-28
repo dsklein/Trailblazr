@@ -2,44 +2,85 @@
 
 
 {% block menu %}
-<!-- <p>The table has {{ length }} rows.</p> -->
 <form method="GET">
-  <!-- start dropdown menu -->
+
+  <p>(Optional) filter by resort/mountain</p>
+  <!-- resort dropdown menu -->
+    <select name="resort" onchange="this.form.submit()">
+	<option value="0"
+			{% if selectedresort == 0 %} selected {% endif %}>
+	  All resorts</option>
+	{% for resort in resortlist.keys() %}
+	<option value="{{ resort }}"
+			{% if selectedresort|int == resort %} selected {% endif %}>
+	  {{ resortlist[resort] }}</option>
+	{% endfor %}
+	</select>
+	<!-- end dropdown menu -->
+	<br>
+	<!-- trail dropdown menu -->  
   <select name="trail" onchange="this.form.submit()">
-	<option value="default" selected disabled hidden>Select a trail...</option>
+	<option value="default"
+			{% if selectedtrail == '' %} selected {% endif %}
+			disabled hidden>Select a trail...</option>
 	{% for thistrail in traillist.keys() %}
-	<option value="{{ traillist[thistrail]['id'] }}">{{ traillist[thistrail]['name'] }}</option>
+	<option value="{{ traillist[thistrail]['id'] }}"
+			class="{{ traillist[thistrail]['resort_id'] }}"
+			{% if selectedresort|int != 0 and traillist[thistrail]['resort_id'] != selectedresort|int %} hidden
+			{% elif selectedtrail==thistrail %} selected {% endif %}>
+	  {{ traillist[thistrail]['name'] }}</option>
 	{% endfor %}
   </select>
   <!-- end dropdown menu -->
 </form>
-<!-- {{ dataframe|safe }} -->
 {% endblock %}
 
 
 {% block analysis %}
-{% if selected %}
-<h3>Currently selected trail is: {{ traillist[selected]['name'] }}.</h3>
-<p>Analysis:</p>
-<!-- <p>The ID of this trail is: {{ traillist[selected]['id'] }}.</p> -->
-<p>This trail falls into category {{ traillist[selected]['label'] }}, with the following attributes:<br>
-  Slope: {{ traillist[selected]['slope'] }}<br>
-  Sinuosity (a.k.a. 'twisty-ness'): {{ traillist[selected]['sinuosity'] }}<br>
-  The ski area rates this trail as {{ traillist[selected]['rating'] }}.
-</p>
+{% if selectedtrail %}
+<hr>
+<h2>{{ traillist[selectedtrail]['name'] }} ({{ traillist[selectedtrail]['resort_name'] }}).</h2>
+<!-- <p>The ID of this trail is: {{ traillist[selectedtrail]['id'] }}.</p> -->
+<table>
+  <tr>
+	<td>Mountain rating:</td>
+	<td class="{{ traillist[selectedtrail]['rating'] }}">{{ traillist[selectedtrail]['rating'] }}</td>
+  </tr>
+  <tr>
+	<td>Trail type:</td>
+	<td>{{ traillist[selectedtrail]['label'] }}</td>
+  </tr>
+  <tr>
+	<td>Length:</td>
+	<td>{{ '%5.0f' % traillist[selectedtrail]['length'] }} meters</td>
+  </tr>
+  <tr>
+	<td>Slope:</td>
+	<td>{{ '%3.1f' % (traillist[selectedtrail]['slope'] * 100.0) }} %</td>
+  </tr>
+  <tr>
+	<td>Curvature:</td>
+	<td>{{ '%3.2f' % traillist[selectedtrail]['sinuosity'] }}</td>
+  </tr>
+  <tr>
+	<td>Turns:</td>
+	<td>{{ traillist[selectedtrail]['inflect'] }}</td>
+  </tr>
+</table>
 {% endif %}
 {% endblock %}
 
 
 {% block similar %}
-{% if selected %}
-<h3>Trails most similar to {{ traillist[selected]['name'] }}:</h3>
-{% if traillist[selected]['neighbors']|length == 0 %}
+{% if selectedtrail %}
+<hr>
+<h3>Trails most similar to {{ traillist[selectedtrail]['name'] }}:</h3>
+{% if traillist[selectedtrail]['neighbors']|length == 0 %}
 <p>Hmm... actually, this trail is the only one in its category!</p>
 {% else %}
 <ul>
-  {% for neighbor in traillist[selected]['neighbors'] %}
-  <li>{{ traillist[neighbor[0]|string]['name'] }}</li>
+  {% for neighbor in traillist[selectedtrail]['neighbors'] %}
+  <li>{{ traillist[neighbor[0]|string]['name'] }} @ {{ traillist[neighbor[0]|string]['resort_name'] }}</li>
   {% endfor %}
 </ul>
 {% endif %}

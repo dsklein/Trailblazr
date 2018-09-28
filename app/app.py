@@ -3,18 +3,14 @@ import pandas as pd
 import io,json
 
 # This stuff is arbitrary python code
-# df = pd.read_csv('https://data.boston.gov/dataset/c8b8ef8c-dd31-4e4e-bf19-af7e4e0d7f36/resource/29e74884-a777-4242-9fcc-c30aaaf3fb10/download/economic-indicators.csv',
-#                  parse_dates=[['Year', 'Month']])
-# length = len(df)
 
-# list_of_trails = [
-# 	{'id':'123','dispname':'Wimpy','cluster':'easy'},
-# 	{'id':'456','dispname':"Murphy's Run",'cluster':'intermediate'},
-# 	{'id':'789','dispname':'Hellbeast','cluster':'advanced'}
-# 	]
 with open('labeled_results.json','r') as infile:
 	traildata = json.load(infile)
-#myvar = 42
+
+resort_list = {}
+for trail in traildata.keys():
+	resort_list[ traildata[trail]['resort_id'] ] = traildata[trail]['resort_name']
+	# Keys are of type 'int'
 
 # This is a flask thing
 app = Flask(__name__)
@@ -23,24 +19,32 @@ app = Flask(__name__)
 # This is where the magic happens
 @app.route('/',methods=['POST','GET'])
 def main():
+	selected_trail = ''
+	selected_resort = 0
 	# Pass stuff to index.html
 	# The names used in {{ }} are passed from here
-	selected = ''
-	message = 'This is a dummy message.'
 	if request.method == 'GET':
+		print('\nSomeone used the GET method.')
+		print(request)
 		if 'trail' in request.args.keys():
-			selected = request.args['trail']
-		print('Someone used the GET method.')
-		print(f'The trail is {selected}')
+			selected_trail = request.args['trail']
+		if 'resort' in request.args.keys():
+			selected_resort = int(request.args['resort'])
+		print(f'The trail is {selected_trail}')
+		if selected_resort != 0:
+			print(f'The resort is {resort_list[selected_resort]}')
+			if selected_trail != '' and traildata[selected_trail]['resort_id'] != selected_resort:
+				selected_trail =  ''
+				print('Resetting selected trail.')
 	# elif request.method == 'POST':
-	# 	selected = request.form.get('trail')
-	# 	print('Someone used the POST method.')
-	# 	print(f'The trail is {selected}')
-	# 	print(request)
+	# 	selected_resort = request.form.get('resort')
+	# 	print('\nSomeone used the POST method.')
+	# 	print(f'The resort is {resort_list[int(selected_resort)]}')
+	# 	print(f'The trail is {selected_trail}')
+	# 	selected_trail = '' # If the user just selected a resort, clear saved trail
 	return render_template('index.html',
-	                       #length=42, dataframe=df.to_html(),
-	                       traillist=traildata,
-	                       selected=selected)
+	                       traillist=traildata, selectedtrail=selected_trail,
+	                       resortlist=resort_list, selectedresort=selected_resort)
 
 
 if __name__ == '__main__':
