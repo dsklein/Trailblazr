@@ -60,7 +60,7 @@ for trail in trail_json['trails']:
 	previous_sign = 0
 	#north_south_asymmetry = -999
 
-	
+
 	# Loop through node pairs and calculate various quantities
 	# Always go from highest node to lowest node, regardless of storage order
 	for i in range(0,num_nodes-1):
@@ -135,7 +135,7 @@ for trail in trail_json['trails']:
 		if prio < minprio:
 			minprio = prio
 			[best_resort_name,best_resort_id] = [resort_name,resort_id]
-		
+
 
 	# Do a little feature scaling and outlier removal
 	feat_sinu = (sinuosity-1.0)/4.0

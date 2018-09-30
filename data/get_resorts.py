@@ -16,11 +16,11 @@ way(area.boundaryarea)["piste:type"="downhill"];
 (
 	node(around.trails:200)["leisure"="sports_centre"];
 	node(around.trails:200)["site"="piste"];
-  	node(around.trails:200)["name"~"ski",i];
-  	node(around.trails:200)["name"~"resort",i];
-  	node(around.trails:200)["name"~"valley",i];
-  	node(around.trails:200)["name"~"mountain",i];
-  	node(around.trails:200)["name"~"peak",i];
+	node(around.trails:200)["name"~"ski",i];
+	node(around.trails:200)["name"~"resort",i];
+	node(around.trails:200)["name"~"valley",i];
+	node(around.trails:200)["name"~"mountain",i];
+	node(around.trails:200)["name"~"peak",i];
 );
 """, verbosity='body', responseformat='json')
 print('...done!')
