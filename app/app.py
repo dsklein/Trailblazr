@@ -9,7 +9,11 @@ with open('labeled_results.json','r') as infile:
 
 resort_list = {}
 for trail in traildata.keys():
-	resort_list[ traildata[trail]['resort_id'] ] = traildata[trail]['resort_name']
+	resort_id = traildata[trail]['resort_id']
+	if resort_id not in resort_list.keys():
+		resort_list[resort_id] = {'name':traildata[trail]['resort_name'], 'state':traildata[trail]['state']}
+	elif resort_list[resort_id]['state'] == 'UNKNOWN':
+		resort_list[resort_id]['state'] = traildata[trail]['state']
 	# Keys are of type 'int'
 
 # This is a flask thing

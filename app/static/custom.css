@@ -38,9 +38,17 @@ td.easy {
 	color: white;
 }
 
+td.easy:before {
+	content: '\26AB\0020'; /* Works fine on Chrome; for Firefox, use \25CF. */
+}
+
 td.intermediate {
 	background-color: blue;
 	color: white;
+}
+
+td.intermediate:before {
+	content: '\25FC\0020';
 }
 
 td.advanced {
@@ -48,7 +56,19 @@ td.advanced {
 	color: white;
 }
 
+td.advanced:before {
+	content: '\25C6\0020';
+}
+
 td.expert {
 	background-color: gray;
 	color: white;
+}
+
+td.expert:before {
+	content: '\25C6\25C6\0020';
+}
+
+td.underline {
+	border-bottom: 1px solid black;
 }
