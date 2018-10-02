@@ -6,7 +6,7 @@ html {
 .container {
 	background-color: white;
 	margin: auto;
-	max-width: 600px;
+	max-width: 700px;
 	padding: 25px;
     overflow-x: auto;
     overflow-y: auto;
@@ -39,7 +39,7 @@ td.easy {
 }
 
 td.easy:before {
-	content: '\26AB\0020'; /* Works fine on Chrome; for Firefox, use \25CF. */
+	content: '\25CF\0020'; /* 26AB works fine on Chrome; for Firefox and Safari, use \25CF. */
 }
 
 td.intermediate {

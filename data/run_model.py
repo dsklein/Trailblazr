@@ -15,14 +15,17 @@ import sys
 
 # If using DBSCAN
 from sklearn.cluster import DBSCAN
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import StandardScaler, QuantileTransformer, KBinsDiscretizer
 
 
 # Function to calculate the proximity (in slope,sinuosity space) of two trails
 def proximity(a,b):
-	dx = a['slope'] - b['slope']
-	dy = a['sinuosity'] - b['sinuosity']
-	return math.sqrt( dx*dx + dy*dy )
+	dx = a['slope'] - b['slope'] # Min-max ~1
+	dy = a['sinuosity'] - b['sinuosity'] # Width ~1
+	dz = (a['length'] - b['length']) / 2000.
+	dv = (a['inflect'] - b['inflect']) / 15.
+	dw = (a['spread'] - b['spread']) / 0.5
+	return math.sqrt( dx*dx + dy*dy + dz*dz + dv*dv + dw*dw )
 
 
 # Read json into dataframe
@@ -33,7 +36,7 @@ df = pd.read_json('data_processed.json')
 df = df.T
 
 # Pick out only the features of interest
-df2 = df[['total_slope','feat_sinu','feat_length','feat_inflect','feat_spread']]
+df2 = df[['total_slope','sinuosity','total_length','inflect','slope_spread']]
 df3 = df.copy(deep=True)
 
 ######################################################
@@ -104,71 +107,107 @@ df3 = df.copy(deep=True)
 ######################################################
 
 # eps   min_samples   n_clusters  cluster sizes
+# Using StandardScaler
 # 0.2      20             4       7662,  1939,  498,  287,  15
 # 0.4      30             5       6032,  2710,  893,  715,  31,   20
 # 0.4      20             6       5117,  1082, 2983,  1038, 145,  21,  15
+# Using QuantileTransformer
+#
+# Using KBinsDiscretizer
+# nbins=3, encode=ordinal, strategy=uniform: 10 clusters, 41 outliers, n0 = 7486, n1=2202
 
 # Do clustering using DBSCAN
-df2 = StandardScaler().fit_transform(df2)
-db = DBSCAN(eps=0.4, min_samples=20).fit(df2) ##########################
+# df2 = StandardScaler().fit_transform(df2)
+# df2 = QuantileTransformer(n_quantiles=10).fit_transform(df2)
+df2 = KBinsDiscretizer(n_bins=3, encode='ordinal', strategy='uniform').fit_transform(df2)
+db = DBSCAN(eps=0.4, min_samples=10).fit(df2) ##########################
 core_samples_mask = np.zeros_like(db.labels_, dtype=bool)
 core_samples_mask[db.core_sample_indices_] = True
 labels = db.labels_
 labellist, labelcounts = np.unique(labels, return_counts=True)
 print(f'Labels is type {type(labels)} and has shape {labels.shape}.')
-n_clusters_ = len(set(labels)) - (1 if -1 in labels else 0)
+n_clusters_ = len(labellist) - (1 if -1 in labels else 0)
 print(f'Found {n_clusters_} clusters.')
 
-unique_labels = set(labels)
-colors = [plt.cm.Spectral(each)
-          for each in np.linspace(0, 1, len(unique_labels))]
-for k, col in zip(unique_labels, colors):
-    if k == -1:
-        # Black used for noise.
-        col = [0, 0, 0, 0.1]
-	    #continue
+# Make plots of the clusters
+unique_labels = labellist
+feature_names = ['Total Slope', 'Curvature', 'Length', 'Turns per km', 'Variation in Slope']
+features_short = ['totalslope', 'sinuosity', 'totallength', 'inflections', 'slopespread']
+for i in range(0, len(feature_names)):
+	colors = [plt.cm.Spectral(each) for each in np.linspace(0, 1, len(unique_labels))]
+	for k, col in zip(unique_labels, colors):
+		if k == -1: col = [0, 0, 0, 0.1] # Black used for noise.
 
-    class_member_mask = (labels == k)
-    print(f'Cluster {k}: members={labelcounts[k]}')
+		class_member_mask = (labels == k)
+		num_members = labelcounts[list(labellist).index(k)]
+		if i==0: print(f'Cluster {k}: members={num_members}')
 
-    xy = df2[class_member_mask & core_samples_mask]
-    plt.plot(xy[:, 0], xy[:, 1], 'o', markerfacecolor=tuple(col),
-             markeredgecolor='k', markersize=14)
+		xy = df2[class_member_mask & core_samples_mask]
+		plt.plot(xy[:, i-1], xy[:, i], 'o', markerfacecolor=tuple(col),
+		         markeredgecolor='k', markersize=14)
 
-    xy = df2[class_member_mask & ~core_samples_mask]
-    plt.plot(xy[:, 0], xy[:, 1], 'o', markerfacecolor=tuple(col),
-             markeredgecolor='k', markersize=6)
+		xy = df2[class_member_mask & ~core_samples_mask]
+		plt.plot(xy[:, i-1], xy[:, i], 'o', markerfacecolor=tuple(col),
+		         markeredgecolor='k', markersize=6)
 
-plt.title('Estimated number of clusters: %d' % n_clusters_)
-plt.xlabel('Total Slope')
-plt.ylabel('Sinuosity')
-plt.savefig('../pictures/clusters_DBSCAN.png')
-print('Saved plot in ../pictures/clusters_DBSCAN.png')
-plt.show()
+	plt.title('Estimated number of clusters: %d' % n_clusters_)
+	plt.xlabel(feature_names[i-1])
+	plt.ylabel(feature_names[i])
+	plt.savefig('../pictures/clusters_DBSCAN_'+features_short[i]+'_vs_'+features_short[i-1]+'.png')
+	print('Saved plot in ../pictures/clusters_DBSCAN_'+features_short[i]+'_vs_'+features_short[i-1]+'.png')
+	# plt.show()
+	plt.clf()
 
 ######################################################
 
 # Output the data from our dataframe (and associated labels)
 slope_dict = {}
 count = 0
+# difficulty_comparison = []
+# for label in unique_labels: difficulty_comparison.append( {'total':0, 'easy':0, 'intermediate':0, 'advanced':0, 'expert':0} )
+histlist_cluster = [ [],[],[],[] ]
+difficulty_mapper = {'easy':0, 'intermediate':1, 'advanced':2, 'expert':3}
+colors = ['green','blue','black','gray']
+difficulties = ['Easy','Intermediate','Advanced','Expert']
+
 for i,row in df3.iterrows():
 	nodeid = i
 	name = df['name'][nodeid]
 	rating = df['rating'][nodeid]
 	resortname = df['resort_name'][nodeid]
 	resortid = df['resort_id'][nodeid]
-	slope = row['total_slope'] ##########################
-	sinu  = row['sinuosity'] ############################
+	state = df['state'][nodeid]
+	slope = row['total_slope']
+	sinu  = row['sinuosity']
 	length = row['total_length']
 	inflect = row['inflect']
 	spread = row['slope_spread']
 	label = int(labels[count])
-	# Somehow get nearest neighbors!
 	slope_dict[nodeid] = {'id':nodeid, 'name':name, 'label':label,
 	                      'rating':rating,'slope':slope, 'sinuosity':sinu,
 	                      'length':length, 'inflect':inflect, 'spread':spread,
-	                      'resort_name':resortname, 'resort_id':resortid}
+	                      'resort_name':resortname, 'resort_id':resortid, 'state':state}
 	count += 1
+	# difficulty_comparison[label][rating] += 1
+	# difficulty_comparison[label]['total'] += 1
+	diff_level = difficulty_mapper[rating]
+	histlist_cluster[diff_level].append(label)
+
+# Print out a comparison of the trail ratings in each cluster
+# for label in unique_labels:
+# 	tot = difficulty_comparison[label]['total']
+# 	print(f'Cluster {label}:')
+# 	for difficulty in ['easy','intermediate','advanced','expert']:
+# 		print(f'\t{difficulty}: {difficulty_comparison[label][difficulty]} ({100. * difficulty_comparison[label][difficulty] / tot:.2f}%)')
+n,bins,patches = plt.hist(x=histlist_cluster, bins=len(labellist), stacked='true', density='true', color=colors, label=difficulties)
+plt.xlabel('Cluster')
+plt.ylabel('Fraction')
+plt.title('Cluster composition')
+plt.legend(loc='upper right')
+# plt.show()
+plt.savefig('../pictures/cluster_composition.png')
+print('Saved ../pictures/cluster_composition.png')
+
 
 # Loop back through our new dict of trails, and find a bunch of
 #  neighbors for every trail
@@ -179,7 +218,7 @@ for id in slope_dict.keys():
 		if slope_dict[jd]['label'] != slope_dict[id]['label']: continue
 		if id == jd: continue
 		prox = proximity(slope_dict[id], slope_dict[jd])
-		if prox > 0.05: continue
+		if prox > 0.5: continue
 		neighborhood.append( (jd,prox) )
 	neighborhood.sort(key=lambda a: a[1])
 	slope_dict[id]['neighbors'] = neighborhood[:10]

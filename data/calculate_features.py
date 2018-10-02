@@ -23,6 +23,7 @@ with open('data_trails.json','r') as trailfile:
 	trail_json = json.load(trailfile)
 
 count = 0
+trails_unknown_resort = 0
 
 for trail in trail_json['trails']:
 
@@ -103,50 +104,68 @@ for trail in trail_json['trails']:
 	minprio = 99.
 	best_resort_name = "Unknown"
 	best_resort_id = -999999
+	best_state = 'UNKNOWN'
+	nearest_state = 999999
 	for node in resort_lookup['elements']:
-		if 'shop' in node['tags'].keys(): continue
-		if 'aerialway' in node['tags'].keys(): continue
-		if 'rental' in node['tags']['name'].lower(): continue
 		rlat = node['lat']
 		rlon = node['lon']
 		if abs( rlat - lastlat ) > 1.: continue
 		if abs( rlon - lastlon ) > 1.: continue
-		dist = coord_distance(lastlat,lastlon,lastelev,rlat,rlon,lastelev)
-		if dist > 1000.: continue
 		resort_name = node['tags']['name']
+		if 'shop' in node['tags'].keys(): continue
+		if 'aerialway' in node['tags'].keys(): continue
+		if 'rental' in resort_name.lower(): continue
+		if 'church' in resort_name.lower(): continue
+		if 'Inn' in resort_name: continue
+		if 'Club' in resort_name: continue
+		if 'Lodge' in resort_name and 'Timberline' not in resort_name: continue
+		if 'Lifts' in resort_name: continue
+		if 'Heliport' in resort_name: continue
+		dist = coord_distance(lastlat,lastlon,lastelev,rlat,rlon,lastelev)
+		if dist > 16000.: continue
+
+		state = ''
+		if 'addr:state' in node['tags'].keys(): state = node['tags']['addr:state']
+		elif 'gnis:ST_alpha' in node['tags'].keys(): state = node['tags']['gnis:ST_alpha']
+		elif 'is_in:state_code' in node['tags'].keys(): state = node['tags']['is_in:state_code']
+		if state != '' and dist < nearest_state:
+			nearest_state = dist
+			best_state = state
+
+		if dist > 2000.: continue
 		resort_id = node['id']
 		resort_dist = dist
 		# Try to rate the various matches on some kind of priority
 		prio = 999
 		if 'site' in node['tags'] and node['tags']['site'] == 'piste':
-			if dist < 100.: prio = dist/100.
+			if dist < 200.: prio = dist/200.
 			else: prio = 1. + (dist/1000.)
 		elif 'leisure' in node['tags'] and  node['tags']['leisure'] == 'sports_centre':
-			if 'ski' in node['tags']['name'].lower() and dist < 200.: prio = 2.
-			elif dist < 300.: prio = 2.5
+			if 'ski' in resort_name.lower() and dist < 200.: prio = 2.
+			elif dist < 350.: prio = 2.5
 			else: prio = 3.
-		elif 'resort' in node['tags']['name'].lower() and dist < 350.: prio = 2.3
-		elif 'mountain' in node['tags']['name'].lower(): prio = 4.
+		elif 'resort' in resort_name.lower() and dist < 350.: prio = 2.7
+		elif 'mountain' in resort_name.lower(): prio = 4.
 		elif dist > 500.: continue
-		elif 'peak' in node['tags']['name'].lower(): prio = 5.
-		elif 'valley' in node['tags']['name'].lower(): prio = 6.
+		elif 'peak' in resort_name.lower(): prio = 5.
+		elif 'valley' in resort_name.lower(): prio = 6.
 		else: continue
 
 		if prio < minprio:
 			minprio = prio
 			[best_resort_name,best_resort_id] = [resort_name,resort_id]
-
+	if best_resort_id == -999999: trails_unknown_resort += 1
 
 	# Do a little feature scaling and outlier removal
-	feat_sinu = (sinuosity-1.0)/4.0
-	feat_spread = slope_spread / 1.5
-	feat_inflect = inflections / 20.
-	feat_length = horiz_length / 3000.
+	# feat_sinu = (sinuosity-1.0)/4.0
+	# feat_spread = slope_spread / 1.5
+	# feat_inflect = inflections / 20.
+	# feat_length = horiz_length / 3000.
 
-	if feat_sinu > 1.0: continue
-	if feat_spread > 1.0: continue
-	if feat_inflect > 1.0: continue
-	if feat_length > 1.0: continue
+	# if feat_sinu > 1.0: continue
+	# if feat_spread > 1.0: continue
+	# if feat_inflect > 1.0: continue
+	# if feat_length > 1.0: continue
 	
 	count += 1
 
@@ -154,13 +173,15 @@ for trail in trail_json['trails']:
 	                            'horiz_length':horiz_length, 'total_length':total_length,
 	                            'total_slope':total_slope, 'slope_spread':slope_spread,
 	                            'max_slope':max_slope, 'min_slope':min_slope,
-	                            'sinuosity':sinuosity, 'inflect':inflections,
+	                            'sinuosity':sinuosity, 'inflect': 1000. * inflections / total_length,
+	                            # 'feat_sinu':feat_sinu, 'feat_spread':feat_spread,
+	                            # 'feat_inflect':feat_inflect, 'feat_length':feat_length,
 	                            'resort_id':best_resort_id, 'resort_name':best_resort_name,
-	                            'feat_sinu':feat_sinu, 'feat_spread':feat_spread,
-	                            'feat_inflect':feat_inflect, 'feat_length':feat_length}
+	                            'state':best_state}
 
 with open('data_processed.json','w') as outfile:
 	json.dump(data_processed,outfile)
 
 print(f'Saved {count} trails to data_processed.json.')
+print(f'{trails_unknown_resort} trails don\'t have a resort name.')
 # The end

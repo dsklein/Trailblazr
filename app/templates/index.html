@@ -46,10 +46,12 @@
 	<td>Mountain rating:</td>
 	<td class="{{ traillist[selectedtrail]['rating'] }}">{{ traillist[selectedtrail]['rating'] }}</td>
   </tr>
+  <!--
   <tr>
 	<td class="underline">Trail type:</td>
 	<td class="underline">{{ traillist[selectedtrail]['label'] }}</td>
   </tr>
+-->
   <tr>
 	<td>Length:</td>
 	<td>{{ '%5.0f' % traillist[selectedtrail]['length'] }} meters</td>
@@ -78,15 +80,29 @@
 {% block similar %}
 {% if selectedtrail %}
 <hr>
-<h3>More type {{ traillist[selectedtrail]['label'] }} trails similar to {{ traillist[selectedtrail]['name'] }}:</h3>
+<h3>Trails similar to {{ traillist[selectedtrail]['name'] }}:</h3>
 {% if traillist[selectedtrail]['neighbors']|length == 0 %}
 <p>Hmm... actually, this trail is the only one in its category!</p>
 {% else %}
 <table>
+  <tr>
+	<td>Name</td>
+	<td>Resort</td>
+	<td>Length</td>
+	<td>Slope</td>
+	<td>Variability</td>
+	<td>Curvature</td>
+	<td>Turns/km</td>
+  </tr>
   {% for neighbor in traillist[selectedtrail]['neighbors'] %}
   <tr>
 	<td class="{{ traillist[neighbor[0]|string]['rating'] }}">{{ traillist[neighbor[0]|string]['name'] }}</td>
-	<td>@ {{ traillist[neighbor[0]|string]['resort_name'] }}, {{ traillist[neighbor[0]|string]['state'] }}</td>
+	<td>@ {{ traillist[neighbor[0]|string]['resort_name'] }}</td>
+	<td>{{ '%5.0f' % traillist[neighbor[0]|string]['length'] }}m</td>
+	<td>{{ '%3.1f' % (traillist[neighbor[0]|string]['slope'] * 100.0) }}%</td>
+	<td>{{ '%3.1f' % (traillist[neighbor[0]|string]['spread'] * 100.0) }}%</td>
+	<td>{{ '%3.2f' % traillist[neighbor[0]|string]['sinuosity'] }}</td>
+	<td>{{ '%3.2f' % traillist[neighbor[0]|string]['inflect'] }}</td>
   </tr>
   {% endfor %}
 </table>

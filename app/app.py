@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request
-import pandas as pd
+#import pandas as pd
 import io,json
 
 # This stuff is arbitrary python code
@@ -28,18 +28,18 @@ def main():
 	# Pass stuff to index.html
 	# The names used in {{ }} are passed from here
 	if request.method == 'GET':
-		print('\nSomeone used the GET method.')
-		print(request)
+		#print('\nSomeone used the GET method.')
+		#print(request)
 		if 'trail' in request.args.keys():
 			selected_trail = request.args['trail']
 		if 'resort' in request.args.keys():
 			selected_resort = int(request.args['resort'])
-		print(f'The trail is {selected_trail}')
+		#print(f'The trail is {selected_trail}')
 		if selected_resort != 0:
-			print(f'The resort is {resort_list[selected_resort]}')
+			#print(f'The resort is {resort_list[selected_resort]}')
 			if selected_trail != '' and traildata[selected_trail]['resort_id'] != selected_resort:
 				selected_trail =  ''
-				print('Resetting selected trail.')
+				#print('Resetting selected trail.')
 	# elif request.method == 'POST':
 	# 	selected_resort = request.form.get('resort')
 	# 	print('\nSomeone used the POST method.')

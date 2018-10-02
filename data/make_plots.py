@@ -28,6 +28,7 @@ if num_trails == 0:
 
 # These will hold the data to make 1D histograms
 histlist_horizlength = [[],[],[],[]]
+histlist_totallength = [[],[],[],[]]
 histlist_totalslope = [[],[],[],[]]
 histlist_maxslope = [[],[],[],[]]
 histlist_minslope = [[],[],[],[]]
@@ -49,6 +50,7 @@ for trail in data.keys():
 
 	# populate lists to be made into histograms
 	histlist_horizlength[idx].append( data[trail]['horiz_length'] )
+	histlist_totallength[idx].append( data[trail]['total_length'] )
 	histlist_totalslope[idx].append( data[trail]['total_slope'] )
 	histlist_maxslope[idx].append( data[trail]['max_slope'] )
 	histlist_minslope[idx].append( data[trail]['min_slope'] )
@@ -71,6 +73,18 @@ plot.legend(loc='upper right')
 # plot.show()
 plot.savefig('../pictures/horiz_length.png')
 print('Saved ../pictures/horiz_length.png')
+plot.clf()
+time.sleep(0.2)
+
+n,bins,patches = plot.hist(x=histlist_totallength, bins='auto', stacked='true', color=colors, label=labels)
+plot.xlabel('Length (meters)')
+plot.ylabel('Trails')
+plot.title('Total trail length')
+plot.yscale('log')
+plot.legend(loc='upper right')
+# plot.show()
+plot.savefig('../pictures/total_length.png')
+print('Saved ../pictures/total_length.png')
 plot.clf()
 time.sleep(0.2)
 
@@ -111,7 +125,7 @@ plot.clf()
 time.sleep(0.2)
 	
 n,bins,patches = plot.hist(x=histlist_sinuosity, bins='auto', stacked='true', color=colors, label=labels)
-plot.xlabel('Sinuosity')
+plot.xlabel('Curvature (length / straight distance)')
 plot.ylabel('Trails')
 plot.title('Curvature')
 plot.yscale('log')
@@ -123,7 +137,7 @@ plot.clf()
 time.sleep(0.2)
 
 n,bins,patches = plot.hist(x=histlist_inflect, bins='auto', stacked='true', color=colors, label=labels)
-plot.xlabel('Number of curves')
+plot.xlabel('Turns per km')
 plot.ylabel('Trails')
 plot.title('Changes of direction')
 # plot.yscale('log')
@@ -153,7 +167,7 @@ time.sleep(0.2)
 for i in range(0,4):
 	plot.scatter(histlist_totalslope[i],histlist_sinuosity[i],c=colors[i],alpha=0.2,label=labels[i])
 plot.xlabel('Total Slope')
-plot.ylabel('Sinuosity')
+plot.ylabel('Curvature')
 plot.legend(loc='upper right')
 # plot.show()
 plot.savefig('../pictures/sinuosity_vs_totalslope.png')
@@ -164,7 +178,7 @@ time.sleep(0.2)
 for i in range(0,4):
 	plot.scatter(histlist_maxslope[i],histlist_sinuosity[i],c=colors[i],alpha=0.2,label=labels[i])
 plot.xlabel('Max Slope')
-plot.ylabel('Sinuosity')
+plot.ylabel('Curvature')
 plot.legend()
 # plot.show()
 plot.savefig('../pictures/sinuosity_vs_maxslope.png')
@@ -196,7 +210,7 @@ time.sleep(0.2)
 
 for i in range(0,4):
 	plot.scatter(histlist_sinuosity[i],histlist_horizlength[i],c=colors[i],alpha=0.2,label=labels[i])
-plot.xlabel('Sinuosity')
+plot.xlabel('Curvature')
 plot.ylabel('Horizontal length')
 plot.legend()
 # plot.show()
@@ -207,12 +221,23 @@ time.sleep(0.2)
 
 for i in range(0,4):
 	plot.scatter(histlist_sinuosity[i],histlist_inflect[i],c=colors[i],alpha=0.2,label=labels[i])
-plot.xlabel('Sinuosity')
-plot.ylabel('Inflections')
+plot.xlabel('Curvature')
+plot.ylabel('Turns per km')
 plot.legend()
 # plot.show()
 plot.savefig('../pictures/inflect_vs_sinuosity.png')
 print('Saved ../pictures/inflect_vs_sinuosity.png')
+plot.clf()
+time.sleep(0.2)
+
+for i in range(0,4):
+	plot.scatter(histlist_totallength[i],histlist_inflect[i],c=colors[i],alpha=0.2,label=labels[i])
+plot.xlabel('Total length')
+plot.ylabel('Turns per km')
+plot.legend()
+# plot.show()
+plot.savefig('../pictures/inflect_vs_totallength.png')
+print('Saved ../pictures/inflect_vs_totallength.png')
 plot.clf()
 time.sleep(0.2)
 
