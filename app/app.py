@@ -4,9 +4,11 @@ import io,json
 
 # This stuff is arbitrary python code
 
+# Import trail data
 with open('labeled_results.json','r') as infile:
 	traildata = json.load(infile)
 
+# Generate a list of resorts/mountains
 resort_list = {}
 for trail in traildata.keys():
 	resort_id = traildata[trail]['resort_id']
@@ -15,6 +17,14 @@ for trail in traildata.keys():
 	elif resort_list[resort_id]['state'] == 'UNKNOWN':
 		resort_list[resort_id]['state'] = traildata[trail]['state']
 	# Keys are of type 'int'
+
+# Generate list of resort ids/names, sorted by resort name
+resorts = [(id,resort_list[id]['name']) for id in resort_list.keys()]
+resorts_sorted = sorted( resorts, key=lambda t: t[1])
+
+# Generate list of trail ids/names, sorted by trail name
+trails = [(id,traildata[id]['name']) for id in traildata.keys()]
+trails_sorted = sorted( trails, key=lambda t: t[1])
 
 # This is a flask thing
 app = Flask(__name__)
@@ -48,7 +58,8 @@ def main():
 	# 	selected_trail = '' # If the user just selected a resort, clear saved trail
 	return render_template('index.html',
 	                       traillist=traildata, selectedtrail=selected_trail,
-	                       resortlist=resort_list, selectedresort=selected_resort)
+	                       resortlist=resort_list, selectedresort=selected_resort,
+	                       resortsbyname=resorts_sorted, trailsbyname=trails_sorted)
 
 
 if __name__ == '__main__':

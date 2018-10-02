@@ -10,10 +10,10 @@
 	<option value="0"
 			{% if selectedresort == 0 %} selected {% endif %}>
 	  All resorts</option>
-	{% for resort in resortlist.keys() %}
+	{% for resort,name in resortsbyname %}
 	<option value="{{ resort }}"
 			{% if selectedresort|int == resort %} selected {% endif %}>
-	  {{ resortlist[resort]['name'] }}</option>
+	  {{ name }}</option>
 	{% endfor %}
 	</select>
 	<!-- end dropdown menu -->
@@ -23,12 +23,12 @@
 	<option value="default"
 			{% if selectedtrail == '' %} selected {% endif %}
 			disabled hidden>Select a trail...</option>
-	{% for thistrail in traillist.keys() %}
-	<option value="{{ traillist[thistrail]['id'] }}"
-			class="{{ traillist[thistrail]['resort_id'] }}"
-			{% if selectedresort|int != 0 and traillist[thistrail]['resort_id'] != selectedresort|int %} hidden
-			{% elif selectedtrail==thistrail %} selected {% endif %}>
-	  {{ traillist[thistrail]['name'] }}</option>
+	{% for trail,name in trailsbyname %}
+	<option value="{{ trail }}"
+			class="{{ traillist[trail]['resort_id'] }}"
+			{% if selectedresort|int != 0 and traillist[trail]['resort_id'] != selectedresort|int %} hidden
+			{% elif selectedtrail==trail %} selected {% endif %}>
+	  {{ name }}</option>
 	{% endfor %}
   </select>
   <!-- end dropdown menu -->
