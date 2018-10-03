@@ -24,6 +24,7 @@ with open('data_trails.json','r') as trailfile:
 
 count = 0
 trails_unknown_resort = 0
+trails_unknown_state = 0
 
 for trail in trail_json['trails']:
 
@@ -155,6 +156,7 @@ for trail in trail_json['trails']:
 			minprio = prio
 			[best_resort_name,best_resort_id] = [resort_name,resort_id]
 	if best_resort_id == -999999: trails_unknown_resort += 1
+	if best_state == 'UNKNOWN': trails_unknown_state += 1
 
 	# Do a little feature scaling and outlier removal
 	# feat_sinu = (sinuosity-1.0)/4.0
@@ -170,6 +172,8 @@ for trail in trail_json['trails']:
 	count += 1
 
 	data_processed[trail_id] = {'id':trail_id, 'name':trail_name, 'rating':trail_rating,
+	                            'first_coord':[firstlat,firstlon,firstelev],
+	                            'last_coord':[lastlat,lastlon,lastelev],
 	                            'horiz_length':horiz_length, 'total_length':total_length,
 	                            'total_slope':total_slope, 'slope_spread':slope_spread,
 	                            'max_slope':max_slope, 'min_slope':min_slope,
@@ -184,4 +188,5 @@ with open('data_processed.json','w') as outfile:
 
 print(f'Saved {count} trails to data_processed.json.')
 print(f'{trails_unknown_resort} trails don\'t have a resort name.')
+print(f'{trails_unknown_state} trails don\'t have a state.')
 # The end

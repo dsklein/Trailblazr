@@ -6,6 +6,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import sys
 
+from coord_tools import coord_distance
+
 # If using affinity propagation
 # from sklearn.cluster import AffinityPropagation
 # from sklearn import metrics
@@ -172,11 +174,14 @@ difficulties = ['Easy','Intermediate','Advanced','Expert']
 
 for i,row in df3.iterrows():
 	nodeid = i
+	# Not features
 	name = df['name'][nodeid]
 	rating = df['rating'][nodeid]
 	resortname = df['resort_name'][nodeid]
 	resortid = df['resort_id'][nodeid]
 	state = df['state'][nodeid]
+	last_coord = df['last_coord'][nodeid]
+	# Features (and label)
 	slope = row['total_slope']
 	sinu  = row['sinuosity']
 	length = row['total_length']
@@ -184,21 +189,15 @@ for i,row in df3.iterrows():
 	spread = row['slope_spread']
 	label = int(labels[count])
 	slope_dict[nodeid] = {'id':nodeid, 'name':name, 'label':label,
+	                      'last_coord':last_coord,
 	                      'rating':rating,'slope':slope, 'sinuosity':sinu,
 	                      'length':length, 'inflect':inflect, 'spread':spread,
 	                      'resort_name':resortname, 'resort_id':resortid, 'state':state}
 	count += 1
-	# difficulty_comparison[label][rating] += 1
-	# difficulty_comparison[label]['total'] += 1
 	diff_level = difficulty_mapper[rating]
 	histlist_cluster[diff_level].append(label)
 
-# Print out a comparison of the trail ratings in each cluster
-# for label in unique_labels:
-# 	tot = difficulty_comparison[label]['total']
-# 	print(f'Cluster {label}:')
-# 	for difficulty in ['easy','intermediate','advanced','expert']:
-# 		print(f'\t{difficulty}: {difficulty_comparison[label][difficulty]} ({100. * difficulty_comparison[label][difficulty] / tot:.2f}%)')
+# Make a comparison of the trail ratings in each cluster
 n,bins,patches = plt.hist(x=histlist_cluster, bins=len(labellist), stacked='true', density='true', color=colors, label=difficulties)
 plt.xlabel('Cluster')
 plt.ylabel('Fraction')
@@ -213,17 +212,23 @@ print('Saved ../pictures/cluster_composition.png')
 #  neighbors for every trail
 print('Finding nearest neighbors...')
 for id in slope_dict.keys():
-	neighborhood = []
+	neighborhood_nat = []
+	neighborhood_loc = []
 	for jd in slope_dict.keys():
-		if slope_dict[jd]['label'] != slope_dict[id]['label']: continue
+		#if slope_dict[jd]['label'] != slope_dict[id]['label']: continue
 		if id == jd: continue
 		prox = proximity(slope_dict[id], slope_dict[jd])
-		if prox > 0.5: continue
-		neighborhood.append( (jd,prox) )
-	neighborhood.sort(key=lambda a: a[1])
-	slope_dict[id]['neighbors'] = neighborhood[:10]
-
-	# Would also be nice to find neighbors at the same resort
+		if prox <= 0.5:
+			neighborhood_nat.append( (jd,prox) )
+		[lat1,lon1,elev1] = slope_dict[id]['last_coord']
+		[lat2,lon2,elev2] = slope_dict[jd]['last_coord']
+		dist = coord_distance(lat1,lon1,elev1,lat2,lon2,elev2)
+		if dist < 100.*1600. and prox <= 0.5:
+			neighborhood_loc.append( (jd,prox,dist) ) # 100 miles
+	neighborhood_nat.sort(key=lambda a: a[1])
+	neighborhood_loc.sort(key=lambda a: a[1])
+	slope_dict[id]['neighbors_usa'] = neighborhood_nat[:10]
+	slope_dict[id]['neighbors_near'] = neighborhood_loc[:10]
 
 with open('labeled_results.json','w') as outfile:
 	json.dump(slope_dict,outfile)

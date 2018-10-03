@@ -81,8 +81,10 @@
 {% if selectedtrail %}
 <hr>
 <h3>Trails similar to {{ traillist[selectedtrail]['name'] }}:</h3>
-{% if traillist[selectedtrail]['neighbors']|length == 0 %}
-<p>Hmm... actually, this trail is the only one in its category!</p>
+
+<h5>Within 100 miles:</h5>
+{% if traillist[selectedtrail]['neighbors_near']|length == 0%}
+<p>Well, it seems there aren't any good matches nearby!</p>
 {% else %}
 <table>
   <tr>
@@ -94,7 +96,35 @@
 	<td>Curvature</td>
 	<td>Turns/km</td>
   </tr>
-  {% for neighbor in traillist[selectedtrail]['neighbors'] %}
+  {% for neighbor in traillist[selectedtrail]['neighbors_near'] %}
+  <tr>
+	<td class="{{ traillist[neighbor[0]|string]['rating'] }}">{{ traillist[neighbor[0]|string]['name'] }}</td>
+	<td>@ {{ traillist[neighbor[0]|string]['resort_name'] }}</td>
+	<td>{{ '%5.0f' % traillist[neighbor[0]|string]['length'] }}m</td>
+	<td>{{ '%3.1f' % (traillist[neighbor[0]|string]['slope'] * 100.0) }}%</td>
+	<td>{{ '%3.1f' % (traillist[neighbor[0]|string]['spread'] * 100.0) }}%</td>
+	<td>{{ '%3.2f' % traillist[neighbor[0]|string]['sinuosity'] }}</td>
+	<td>{{ '%3.2f' % traillist[neighbor[0]|string]['inflect'] }}</td>
+  </tr>
+  {% endfor %}
+</table>
+{% endif %}
+
+<h5>Within the whole United States:</h5>
+{% if traillist[selectedtrail]['neighbors_usa']|length == 0 %}
+<p>Hmm... actually, this trail appears to be in a class of its own!</p>
+{% else %}
+<table>
+  <tr>
+	<td>Name</td>
+	<td>Resort</td>
+	<td>Length</td>
+	<td>Slope</td>
+	<td>Variability</td>
+	<td>Curvature</td>
+	<td>Turns/km</td>
+  </tr>
+  {% for neighbor in traillist[selectedtrail]['neighbors_usa'] %}
   <tr>
 	<td class="{{ traillist[neighbor[0]|string]['rating'] }}">{{ traillist[neighbor[0]|string]['name'] }}</td>
 	<td>@ {{ traillist[neighbor[0]|string]['resort_name'] }}</td>
