@@ -5,6 +5,8 @@ import matplotlib.pyplot as plot
 import sys
 import time
 
+from statsmodels.distributions.empirical_distribution import ECDF
+
 
 # First command-line argument is the file to open.
 # If no file is specified, use the usa data as a default
@@ -251,3 +253,26 @@ plot.savefig('../pictures/slopespread_vs_totalslope.png')
 print('Saved ../pictures/slopespread_vs_totalslope.png')
 plot.clf()
 time.sleep(0.2)
+
+
+###################################
+#  Make some ECDF plots
+
+featuredata = [histlist_horizlength, histlist_totallength, histlist_totalslope, histlist_maxslope, histlist_minslope, histlist_slopespread, histlist_sinuosity, histlist_inflect]
+variable = ['horizlength', 'totallength', 'totalslope', 'maxslope', 'minslope', 'slopespread', 'sinuosity', 'inflect']
+varname = ['Horizontal Length', 'Total Length', 'Total Slope', 'Max Slope', 'Min Slope', 'Slope Spread', 'Curvature', 'Turns per km']
+
+for featurelist, var, name in zip(featuredata,variable,varname):
+	for i in range(0,4):
+		ecdf = ECDF( featurelist[i] )
+		plot.plot( ecdf.x, ecdf.y, color=colors[i], label=labels[i] )
+	plot.xlabel(name)
+	plot.ylabel('Cumulative probability')
+	plot.title('ECDF:'+name)
+	plot.legend(loc='lower right')
+	# plot.show()
+	plot.savefig('../pictures/ECDF_'+var+'.png')
+	print('Saved ../pictures/ECDF_'+var+'.png')
+	plot.clf()
+	time.sleep(0.2)
+# Done looping over variables
