@@ -39,11 +39,11 @@
 {% block analysis %}
 {% if selectedtrail %}
 <hr>
-<h2>{{ traillist[selectedtrail]['name'] }} ({{ traillist[selectedtrail]['resort_name'] }}, {{ traillist[selectedtrail]['state'] }}).</h2>
+<h2>{{ traillist[selectedtrail]['name'] }} ({{ traillist[selectedtrail]['resort_name'] }}{% if traillist[selectedtrail]['state'] != 'UNKNOWN' %}, {{ traillist[selectedtrail]['state'] }}{% endif %})</h2>
 <!-- <p>The ID of this trail is: {{ traillist[selectedtrail]['id'] }}.</p> -->
 <table>
   <tr>
-	<td>Mountain rating:</td>
+	<td>Trail rating:</td>
 	<td class="{{ traillist[selectedtrail]['rating'] }}">{{ traillist[selectedtrail]['rating'] }}</td>
   </tr>
   <!--
