@@ -33,6 +33,15 @@ select:focus {
 	box-shadow: 0 0 0 1px #4dac71;
 }
 
+td a {
+	color: white;
+	text-decoration: none;
+}
+
+td a:hover{
+	text-decoration: underline;
+}
+
 td.easy {
 	background-color: green;
 	color: white;
