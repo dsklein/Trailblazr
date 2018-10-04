@@ -29,6 +29,25 @@ def proximity(a,b):
 	dw = (a['spread'] - b['spread']) / 0.5
 	return math.sqrt( dx*dx + dy*dy + dz*dz + dv*dv + dw*dw )
 
+def modify( trail, feature, direction ):
+	trail_new = trail.copy()
+	if feature=='length':
+		if direction=='down': trail_new['length'] -= 500
+		elif direction=='up': trail_new['length'] += 500
+	elif feature=='slope':
+		if direction=='down': trail_new['slope'] -= 0.1
+		elif direction=='up': trail_new['slope'] += 0.1
+	elif feature=='spread':
+		if direction=='down': trail_new['spread'] -= 0.1
+		elif direction=='up': trail_new['spread'] += 0.1
+	elif feature=='sinuosity':
+		if direction=='down': trail_new['sinuosity'] -= 0.15
+		elif direction=='up': trail_new['sinuosity'] += 0.15
+	elif feature=='inflect':
+		if direction=='down': trail_new['inflect'] -= 3.0
+		elif direction=='up': trail_new['inflect'] += 3.0
+	return trail_new
+
 
 # Read json into dataframe
 print('Loading data from json file...')
@@ -207,28 +226,58 @@ plt.legend(loc='upper right')
 plt.savefig('../pictures/cluster_composition.png')
 print('Saved ../pictures/cluster_composition.png')
 
+######################################################
 
 # Loop back through our new dict of trails, and find a bunch of
-#  neighbors for every trail
+#  neighbors for every trail. Also find trails that have some
+#  feature shifted up or down
 print('Finding nearest neighbors...')
 for id in slope_dict.keys():
 	neighborhood_nat = []
 	neighborhood_loc = []
+	shifted_versions = {'length_up':modify(slope_dict[id], 'length', 'up'), # This trail with a feature shifted up or down
+	           'length_down':modify(slope_dict[id], 'length', 'down'),
+	           'slope_up':modify(slope_dict[id], 'slope', 'up'),
+	           'slope_down':modify(slope_dict[id], 'slope', 'down'),
+	           'spread_up':modify(slope_dict[id], 'spread', 'up'),
+	           'spread_down':modify(slope_dict[id], 'spread', 'down'),
+	           'sinu_up':modify(slope_dict[id], 'sinuosity', 'up'),
+	           'sinu_down':modify(slope_dict[id], 'sinuosity', 'down'),
+	           'inflect_up':modify(slope_dict[id], 'inflect', 'up'),
+	           'inflect_down':modify(slope_dict[id], 'inflect', 'down')}
+	best_shifted = {'length_up':[-999999,9], # Best matches to modified versions of this trail
+	           'length_down':[-999999,9],
+	           'slope_up':[-999999,9],
+	           'slope_down':[-999999,9],
+	           'spread_up':[-999999,9],
+	           'spread_down':[-999999,9],
+	           'sinu_up':[-999999,9],
+	           'sinu_down':[-999999,9],
+	           'inflect_up':[-999999,9],
+	           'inflect_down':[-999999,9]}
+
 	for jd in slope_dict.keys():
 		#if slope_dict[jd]['label'] != slope_dict[id]['label']: continue
 		if id == jd: continue
 		prox = proximity(slope_dict[id], slope_dict[jd])
-		if prox <= 0.5:
+		if prox <= 0.5: # Find most similar slopes anywhere in the US
 			neighborhood_nat.append( (jd,prox) )
 		[lat1,lon1,elev1] = slope_dict[id]['last_coord']
 		[lat2,lon2,elev2] = slope_dict[jd]['last_coord']
 		dist = coord_distance(lat1,lon1,elev1,lat2,lon2,elev2)
-		if dist < 100.*1600. and prox <= 0.5:
-			neighborhood_loc.append( (jd,prox,dist) ) # 100 miles
+		if dist < 100.*1600. and prox <= 0.5: # Find most similar slopes within 100 miles
+			neighborhood_loc.append( (jd,prox,dist) )
+		if prox < 0.75:
+			for mod in shifted_versions.keys(): # Find most similar slopes with features shifted up/down
+				prox_shifted = proximity(shifted_versions[mod], slope_dict[jd])
+				if prox_shifted < best_shifted[mod][1]:
+					best_shifted[mod][1] = prox_shifted
+					best_shifted[mod][0] = jd
 	neighborhood_nat.sort(key=lambda a: a[1])
 	neighborhood_loc.sort(key=lambda a: a[1])
 	slope_dict[id]['neighbors_usa'] = neighborhood_nat[:10]
 	slope_dict[id]['neighbors_near'] = neighborhood_loc[:10]
+	slope_dict[id]['shifted'] = best_shifted
 
 with open('labeled_results.json','w') as outfile:
 	json.dump(slope_dict,outfile)

@@ -143,3 +143,91 @@
 {% endif %}
 {% endif %}
 {% endblock %}
+
+
+{% block shifted %}
+{% if selectedtrail %}
+<hr>
+<h2>Okay, but I want a trail that is...</h2>
+{% set shifts = traillist[selectedtrail]['shifted'] %}
+<table class="center">
+
+  <tr>
+	<td class="{{ traillist[shifts['length_down'][0]|string]['rating'] }}">
+	  <a href="?resort=0&trail={{ shifts['length_down'][0] }}">
+		{{ traillist[shifts['length_down'][0]|string]['name'] }}
+	  </a>
+	</td>
+	<td>❰Shorter</td>
+	<td class="right">Longer❱</td>
+	<td class="{{ traillist[shifts['length_up'][0]|string]['rating'] }}">
+	  <a href="?resort=0&trail={{ shifts['length_up'][0] }}">
+		{{ traillist[shifts['length_up'][0]|string]['name'] }}
+	  </a>
+	</td>
+  </tr>
+
+  <tr>
+	<td class="{{ traillist[shifts['slope_down'][0]|string]['rating'] }}">
+	  <a href="?resort=0&trail={{ shifts['slope_down'][0] }}">
+		{{ traillist[shifts['slope_down'][0]|string]['name'] }}
+	  </a>
+	</td>
+	<td>❰Flatter</td>
+	<td class="right">Steeper❱</td>
+	<td class="{{ traillist[shifts['slope_up'][0]|string]['rating'] }}">
+	  <a href="?resort=0&trail={{ shifts['slope_up'][0] }}">
+		{{ traillist[shifts['slope_up'][0]|string]['name'] }}
+	  </a>
+	</td>
+  </tr>
+
+  <tr>
+	<td class="{{ traillist[shifts['spread_down'][0]|string]['rating'] }}">
+	  <a href="?resort=0&trail={{ shifts['spread_down'][0] }}">
+		{{ traillist[shifts['spread_down'][0]|string]['name'] }}
+	  </a>
+	</td>
+	<td>❰Less varied</td>
+	<td class="right">More varied❱</td>
+	<td class="{{ traillist[shifts['spread_up'][0]|string]['rating'] }}">
+	  <a href="?resort=0&trail={{ shifts['spread_up'][0] }}">
+		{{ traillist[shifts['spread_up'][0]|string]['name'] }}
+	  </a>
+	</td>
+  </tr>
+
+  <tr>
+	<td class="{{ traillist[shifts['sinu_down'][0]|string]['rating'] }}">
+	  <a href="?resort=0&trail={{ shifts['sinu_down'][0] }}">
+		{{ traillist[shifts['sinu_down'][0]|string]['name'] }}
+	  </a>
+	</td>
+	<td>❰Less curved</td>
+	<td class="right">More curved❱</td>
+	<td class="{{ traillist[shifts['sinu_up'][0]|string]['rating'] }}">
+	  <a href="?resort=0&trail={{ shifts['sinu_up'][0] }}">
+		{{ traillist[shifts['sinu_up'][0]|string]['name'] }}
+	  </a>
+	</td>
+  </tr>
+
+  <tr>
+	<td class="{{ traillist[shifts['inflect_down'][0]|string]['rating'] }}">
+	  <a href="?resort=0&trail={{ shifts['inflect_down'][0] }}">
+		{{ traillist[shifts['inflect_down'][0]|string]['name'] }}
+	  </a>
+	</td>
+	<td>❰Less turny</td>
+	<td class="right">More turny❱</td>
+	<td class="{{ traillist[shifts['inflect_up'][0]|string]['rating'] }}">
+	  <a href="?resort=0&trail={{ shifts['inflect_up'][0] }}">
+		{{ traillist[shifts['inflect_up'][0]|string]['name'] }}
+	  </a>
+	</td>
+  </tr>
+
+</table>
+
+{% endif %}
+{% endblock %}
