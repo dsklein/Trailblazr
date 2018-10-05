@@ -52,6 +52,7 @@ td a:hover{
 
 td.easy {
 	background-color: green;
+	border-radius: 4px;
 	color: white;
 }
 
@@ -61,15 +62,17 @@ td.easy:before {
 
 td.intermediate {
 	background-color: blue;
+	border-radius: 4px;
 	color: white;
 }
 
 td.intermediate:before {
-	content: '\25FC\0020';
+	content: '\25FC\0020'; /* 25FC works fine on chrome and firefox, but has problems on android chrome. 25FB works on android, but is hollow on chrome. */
 }
 
 td.advanced {
 	background-color: black;
+	border-radius: 4px;
 	color: white;
 }
 
@@ -79,6 +82,7 @@ td.advanced:before {
 
 td.expert {
 	background-color: gray;
+	border-radius: 4px;
 	color: white;
 }
 

@@ -200,6 +200,7 @@ for i,row in df3.iterrows():
 	resortid = df['resort_id'][nodeid]
 	state = df['state'][nodeid]
 	last_coord = df['last_coord'][nodeid]
+	max_slope = df['max_slope'][nodeid]
 	# Features (and label)
 	slope = row['total_slope']
 	sinu  = row['sinuosity']
@@ -208,7 +209,7 @@ for i,row in df3.iterrows():
 	spread = row['slope_spread']
 	label = int(labels[count])
 	slope_dict[nodeid] = {'id':nodeid, 'name':name, 'label':label,
-	                      'last_coord':last_coord,
+	                      'last_coord':last_coord, 'max_slope':max_slope,
 	                      'rating':rating,'slope':slope, 'sinuosity':sinu,
 	                      'length':length, 'inflect':inflect, 'spread':spread,
 	                      'resort_name':resortname, 'resort_id':resortid, 'state':state}
