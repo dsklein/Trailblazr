@@ -4,6 +4,7 @@ import math
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+import random
 import sys
 
 from coord_tools import coord_distance
@@ -184,8 +185,6 @@ for i in range(0, len(feature_names)):
 # Output the data from our dataframe (and associated labels)
 slope_dict = {}
 count = 0
-# difficulty_comparison = []
-# for label in unique_labels: difficulty_comparison.append( {'total':0, 'easy':0, 'intermediate':0, 'advanced':0, 'expert':0} )
 histlist_cluster = [ [],[],[],[] ]
 difficulty_mapper = {'easy':0, 'intermediate':1, 'advanced':2, 'expert':3}
 colors = ['green','blue','black','gray']
@@ -226,14 +225,21 @@ plt.legend(loc='upper right')
 # plt.show()
 plt.savefig('../pictures/cluster_composition.png')
 print('Saved ../pictures/cluster_composition.png')
+plt.clf()
 
 ######################################################
 
 # Loop back through our new dict of trails, and find a bunch of
 #  neighbors for every trail. Also find trails that have some
 #  feature shifted up or down
+prox_nearest = []
+prox_tenth = []
+prox_random = []
+trails_processed = 0
+random.seed(3) # Use a fixed seed, for reproducibility
 print('Finding nearest neighbors...')
 for id in slope_dict.keys():
+	randindex = random.choice( list(slope_dict.keys()) ) # Pick a random trail to compare against
 	neighborhood_nat = []
 	neighborhood_loc = []
 	shifted_versions = {'length_up':modify(slope_dict[id], 'length', 'up'), # This trail with a feature shifted up or down
@@ -261,6 +267,7 @@ for id in slope_dict.keys():
 		#if slope_dict[jd]['label'] != slope_dict[id]['label']: continue
 		if id == jd: continue
 		prox = proximity(slope_dict[id], slope_dict[jd])
+		if jd == randindex: prox_random.append(prox)
 		if prox <= 0.5: # Find most similar slopes anywhere in the US
 			neighborhood_nat.append( (jd,prox) )
 		[lat1,lon1,elev1] = slope_dict[id]['last_coord']
@@ -279,7 +286,23 @@ for id in slope_dict.keys():
 	slope_dict[id]['neighbors_usa'] = neighborhood_nat[:10]
 	slope_dict[id]['neighbors_near'] = neighborhood_loc[:10]
 	slope_dict[id]['shifted'] = best_shifted
+	if len(neighborhood_nat) > 0:
+		prox_nearest.append(slope_dict[id]['neighbors_usa'][0][1])
+		prox_tenth.append(slope_dict[id]['neighbors_usa'][-1][1])
+	trails_processed += 1
+	if trails_processed %1000 == 0:
+		print(f'Processed {trails_processed} trails so far...')
 
 with open('labeled_results.json','w') as outfile:
 	json.dump(slope_dict,outfile)
 print('Wrote labeled data to labeled_results.json.')
+
+n,bins,patches = plt.hist( x=prox_nearest, bins=np.linspace(0.,3.,30), color='green', alpha=0.5, label='Nearest trail')
+n,bins,patches = plt.hist( x=prox_tenth, bins=np.linspace(0.,3.,30), color='blue', alpha=0.5, label='Tenth nearest')
+n,bins,patches = plt.hist( x=prox_random, bins=np.linspace(0.,3.,30), color='red', alpha=0.5, label='Random trail')
+plt.xlabel('Euclidean distance')
+plt.ylabel('Trails')
+plt.title('Proximity comparison')
+plt.legend(loc='upper right')
+plt.savefig('../pictures/proximity_comparison.png')
+print('Saved ../pictures/proximity_comparison.png')
