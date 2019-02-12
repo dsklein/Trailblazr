@@ -1,0 +1,5 @@
+# Ignore plots made by the code
+*.png
+
+# Ignore some old plots that are in PDF format
+*.pdf
